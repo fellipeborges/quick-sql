@@ -11,16 +11,16 @@
 - Increase the `Publish Version` to the new version number.
 - Click on `Finish` and then `Publish`.
 
-#### Create a new tag version in GitHub
+#### Zip the published files
+- Move all the published files to a folder named `QuickSQL-v<version>.zip` where `<version>` is the new version number.
+- Compress the folder into a zip file
+
+- #### Create a new tag version in GitHub
 - Push the changes to the `main` branch of the Quick SQL repository.
 - Open a terminal and navigate to the Quick SQL repository.
 - Run the following commands to create and push a new tag:
 - `git tag v<version>`
 - `git push origin --tags`
-
-#### Create a Self-Extracting .exe using 7zip
-- Compress all the published files and folders as a zip file.
-- Rename it as `QuickSQL-v<version>.zip` where `<version>` is the new version number.
 
 #### Create a new release on GitHub
 - Go to the [Quick SQL GitHub releases page](https://github.com/fellipeborges/quick-sql/releases)
