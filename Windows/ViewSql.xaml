@@ -1,0 +1,48 @@
+﻿<Window x:Class="quick_sql.Windows.ViewSql"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:quick_sql.Windows"
+        mc:Ignorable="d"
+        Title="View SQL" Height="600" Width="800" ShowInTaskbar="False">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <!-- Header -->
+        <Grid Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="130"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Horizontal" Grid.Column="0">
+                <Label Content="Server:" FontWeight="Bold" />
+                <Label Content="lblServer" Name="lblServer" />
+
+                <Label Content="Database:" FontWeight="Bold"  />
+                <Label Content="lblDatabase" Name="lblDatabase" />
+            </StackPanel>
+
+            <Button Grid.Column="1"
+                    Name="btnCopyToClipboard"
+                    Content="📋 Copy to clipboard"
+                    Margin="5"
+                    Cursor="Hand"
+                    FontSize="11"
+                    Click="btnCopyToClipboard_Click" />
+        </Grid>
+
+        <!-- SQL -->
+        <RichTextBox Grid.Row="1"
+                     Name="rtbSql"
+                     Margin="5"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     IsReadOnly="True"
+                     FontFamily="Consolas"
+                     FontSize="12" />
+    </Grid>
+</Window>

@@ -1,0 +1,656 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:quick_sql" xmlns:Converters="clr-namespace:quick_sql.Converter"
+        x:Class="quick_sql.MainWindow"
+        mc:Ignorable="d"
+        Title="Quick SQL"
+        Height="600"
+        Width="1400"
+        Icon="/Media/app_icon.ico"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        KeyDown="Window_KeyDown">
+
+    <Window.Resources>
+        <Converters:NumberFormaterConverter x:Key="NumberFormaterConverter" />
+        <Converters:DateTimeFormaterConverter x:Key="DateTimeFormaterConverter" />
+        <Converters:DateTimeSimplifierConverter x:Key="DateTimeSimplifierConverter" />
+        <Converters:SizeFormaterConverter x:Key="SizeFormaterConverter" />
+        <Converters:CountFormaterConverter x:Key="CountFormaterConverter" />
+        <Converters:QueryConverter x:Key="QueryConverter" />
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Loading overlay -->
+        <Grid Name="LoadingOverlay" Grid.RowSpan="2" Background="#77000000" Visibility="Collapsed" Panel.ZIndex="1">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="⌛" FontSize="24" Foreground="White" HorizontalAlignment="Center" />
+                <TextBlock Text="Loading..." FontSize="24" Foreground="White" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Main filters -->
+        <Grid Grid.Row="0" Margin="5,0,5,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="300" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Server -->
+            <Label Grid.Row="0" Grid.Column="0" Content="Server*" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+            <ComboBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="cmbFilterServer" MaxDropDownHeight="500" IsEditable="True" Cursor="Hand" />
+
+            <!-- Database -->
+            <Label Grid.Row="0" Grid.Column="1" Content="Database" Name="lblFilterDatabase" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+            <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Name="cmbFilterDatabase" MaxDropDownHeight="500" IsEditable="True" Cursor="Hand" />
+
+        </Grid>
+
+        <!-- Tabs -->
+        <TabControl Grid.Row="1" SelectedIndex="0" x:Name="tabMain" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5" SelectionChanged="tabMain_SelectionChanged">
+
+            <!-- Code snippets tab -->
+            <TabItem Header="📃 Code snippets">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="35*" />
+                        <ColumnDefinition Width="65*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- List of snippets -->
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="40" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox Name="txtCodeSnippetSearch" Margin="5,0,0,0" ToolTip="Search" FontStyle="Italic" Height="25" VerticalContentAlignment="Center" TextChanged="txtCodeSnippetSearch_TextChanged" PreviewKeyDown="txtCodeSnippetSearch_PreviewKeyDown" />
+                        <ListView Name="lsvCodeSnippets" Grid.Row="1" Margin="5,0,0,5" SelectionChanged="lsvCodeSnippets_SelectionChanged" MouseUp="lsvCodeSnippets_MouseUp">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="1,1,1,15" MaxHeight="50">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Code}" Opacity=".75" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+
+                    <!-- Title and Code -->
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="40" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80*" />
+                            <ColumnDefinition Width="102" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Name="txtCodeSnippetName" Grid.Row="0" Grid.Column="0" Margin="5,0,5,0" ToolTip="Name" FontWeight="Bold" Height="25" VerticalContentAlignment="Center" />
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,5,0">
+                            <Button Name="btnCodeSnippetAdd" Content="➕" ToolTip="Add" Width="25" Height="25" Margin="0,0,-1,0" Cursor="Hand" Click="btnCodeSnippetAdd_Click"/>
+                            <Button Name="btnCodeSnippetSave" Content="💾" ToolTip="Save" Width="25" Height="25" Margin="0,0,-1,0" Cursor="Hand" Click="btnCodeSnippetSave_Click"/>
+                            <Button Name="btnCodeSnippetDelete" Content="🗑️" ToolTip="Delete" Width="25" Height="25" Margin="0,0,-1,0" Cursor="Hand" Click="btnCodeSnippetDelete_Click"/>
+                            <Button Name="btnCodeSnippetCopy" Content="📋" ToolTip="Copy to clipboard" Width="25" Height="25" Cursor="Hand" Click="btnCodeSnippetCopy_Click"/>
+                        </StackPanel>
+                        <RichTextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Name="rtbCodeSnippetCode" Margin="5,0,5,5" Padding="0,5,5,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- Expensive queries tab -->
+            <TabItem Header="💲 Expensive queries" Name="tabExpQueries">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- Filters -->
+                    <Grid Grid.Row="0" Margin="5,0,5,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="75" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Host -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Host" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <ComboBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="cmbExpQueriesFilterHost" MaxDropDownHeight="500" IsEditable="True" Cursor="Hand" />
+
+                        <!-- Login -->
+                        <Label Grid.Row="0" Grid.Column="1" Content="Login" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Name="cmbExpQueriesFilterLogin" MaxDropDownHeight="500" IsEditable="True" Cursor="Hand" />
+
+                        <!-- Program -->
+                        <Label Grid.Row="0" Grid.Column="2" Content="Program" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <ComboBox Grid.Row="1" Grid.Column="2" Margin="0,0,10,0" Name="cmbExpQueriesFilterProgram" MaxDropDownHeight="500" IsEditable="True" Cursor="Hand" />
+
+                        <!-- Query -->
+                        <Label Grid.Row="0" Grid.Column="3" Content="Query" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <TextBox Grid.Row="1" Grid.Column="3" Margin="0,0,10,0" Name="txtExpQueriesFilterQuery" />
+
+                        <!-- Blocking -->
+                        <Label Grid.Row="0" Grid.Column="4" Content="Only blocking" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <CheckBox Grid.Row="1" Grid.Column="4" Margin="0,0,10,0" Name="chkExpQueriesFilterBlocking" ToolTip="Only blocking or blocked queries" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
+
+                        <!-- Search button -->
+                        <Button Grid.Row="1" Grid.Column="5" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnExpQueriesSearch" Width="75" Cursor="Hand" Click="btnExpQueriesSearch_Click"/>
+                    </Grid>
+
+                    <!-- Grid -->
+                    <DataGrid Grid.Row="1"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              Margin="5,10,5,5"
+                              Name="gridExpQueries"
+                              RowHeight="22"
+                              BorderBrush="LightGray"
+                              Background="LightGray"
+                              GridLinesVisibility="None"
+                              MouseDoubleClick="gridExpQueries_MouseDoubleClick">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="BorderBrush" Value="LightGray" />
+                                <Setter Property="BorderThickness" Value="0,1,1,0" />
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" Width="22">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="🚫" ToolTip="Kill session" Command="{Binding KillSessionCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="SPID" Binding="{Binding SPID}" Width="40"/>
+                            <DataGridTextColumn Header="Database" Binding="{Binding Database}" Width="230"/>
+                            <DataGridTextColumn Header="Host" Binding="{Binding Host}" Width="170"/>
+                            <DataGridTextColumn Header="Login" Binding="{Binding Login}" Width="270"/>
+                            <DataGridTextColumn Header="Program" Binding="{Binding Program}" Width="*"/>
+                            <DataGridTextColumn Header="Cost" Binding="{Binding Cost, Converter={StaticResource NumberFormaterConverter}}" Width="Auto">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Margin" Value="5,0,2,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Elapsed time" Binding="{Binding ElapsedTime}" Width="Auto">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center" />
+                                        <Setter Property="TextAlignment" Value="Center" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Blocking" Binding="{Binding Blocking}" Width="Auto"/>
+                            <DataGridTextColumn Header="Blocked by" Binding="{Binding BlockedBy}" Width="Auto"/>
+                            <DataGridTemplateColumn Width="22">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Grid.Column="1" Content="➡️" ToolTip="Go to blocker session" Command="{Binding GotoBlockerSessionCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding BlockedBy}" Value="">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Query" Width="600">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,2,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="22" />
+                                                <ColumnDefinition Width="22" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Query, Converter={StaticResource QueryConverter}}" TextTrimming="CharacterEllipsis" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="3,5,0,0" FontFamily="Consolas" FontSize="11" ToolTip="{Binding Query}" />
+                                            <Button Grid.Column="1" Content="👁️" ToolTip="View query" Command="{Binding QueryViewCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" />
+                                            <Button Grid.Column="2" Content="📋" ToolTip="Copy to clipboard" Command="{Binding QueryCopyCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Object search tab -->
+            <TabItem Header="🔍 Object search" Name="tabObjectSearch">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- Filters -->
+                    <Grid Grid.Row="0" Margin="5,0,5,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="500" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Term -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Term" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="txtObjectSearchFilterTerm" />
+
+                        <!-- Search in -->
+                        <Label Grid.Row="0" Grid.Column="1" Content="Search in" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,5,0">
+                            <CheckBox Margin="0,0,10,0" Name="chkObjectSearchFilterSearchInName" Content="Name" IsChecked="True" Cursor="Hand"/>
+                            <CheckBox Margin="0,0,10,0" Name="chkObjectSearchFilterSearchInCode" Content="Code" IsChecked="True" Cursor="Hand"/>
+                        </StackPanel>
+
+                        <!-- Search button -->
+                        <Button Grid.Row="1" Grid.Column="2" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnObjectSearchSearch" Width="75" Cursor="Hand" Click="btnObjectSearchSearch_Click"/>
+                    </Grid>
+
+                    <!-- Grid -->
+                    <DataGrid Grid.Row="1"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              Margin="5,10,5,5"
+                              Name="gridObjectSearch"
+                              RowHeight="22"
+                              BorderBrush="LightGray"
+                              Background="LightGray"
+                              GridLinesVisibility="None" MouseDoubleClick="gridObjectSearch_MouseDoubleClick">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="BorderBrush" Value="LightGray" />
+                                <Setter Property="BorderThickness" Value="0,1,1,0" />
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Database" Binding="{Binding Database}" Width="250"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="170"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="430"/>
+                            <DataGridTemplateColumn Header="Code" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,2,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="22" />
+                                                <ColumnDefinition Width="22" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Code, Converter={StaticResource QueryConverter}}" TextTrimming="CharacterEllipsis" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="3,5,0,0" FontFamily="Consolas" FontSize="11" ToolTip="{Binding Code}" />
+                                            <Button Grid.Column="1" Content="👁️" ToolTip="View query" Command="{Binding CodeViewCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" />
+                                            <Button Grid.Column="2" Content="📋" ToolTip="Copy to clipboard" Command="{Binding CodeCopyCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Index fragmentation tab -->
+            <TabItem Header="🧩 Index fragmentation" Name="tabIndexFragmentation">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- Filters -->
+                    <Grid Grid.Row="0" Margin="5,0,5,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="500" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Table -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Table" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="txtIndexFragmentationFilterTable" />
+
+                        <!-- Search button -->
+                        <Button Grid.Row="1" Grid.Column="2" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnIndexFragmentationSearch" Width="75" Cursor="Hand" Click="btnIndexFragmentationSearch_Click"/>
+                    </Grid>
+
+                    <!-- Grid -->
+                    <DataGrid Grid.Row="1"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              Margin="5,10,5,5"
+                              Name="gridIndexFragmentation"
+                              RowHeight="22"
+                              BorderBrush="LightGray"
+                              Background="LightGray"
+                              GridLinesVisibility="None"
+                              MouseDoubleClick="gridIndexFragmentation_MouseDoubleClick">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="BorderBrush" Value="LightGray" />
+                                <Setter Property="BorderThickness" Value="0,1,1,0" />
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Schema" Binding="{Binding Schema}" Width="60"/>
+                            <DataGridTextColumn Header="Table" Binding="{Binding Table}" Width="250"/>
+                            <DataGridTextColumn Header="Index" Binding="{Binding Index}" Width="500"/>
+                            <DataGridTextColumn Header="Frag. %" Binding="{Binding FragPercentual, Converter={StaticResource NumberFormaterConverter}}" Width="50">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Margin" Value="5,0,2,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Page count" Binding="{Binding PageCount, Converter={StaticResource NumberFormaterConverter}}" Width="70">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Margin" Value="5,0,2,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn Header="Rebuild script" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,2,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="22" />
+                                                <ColumnDefinition Width="22" />
+                                                <ColumnDefinition Width="22" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding RebuildScript, Converter={StaticResource QueryConverter}}" TextTrimming="CharacterEllipsis" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="3,5,0,0" FontFamily="Consolas" FontSize="11" ToolTip="{Binding RebuildScript}" />
+                                            <Button Grid.Column="1" Content="👁️" ToolTip="View script" Command="{Binding RebuildScriptViewCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" />
+                                            <Button Grid.Column="2" Content="▶️" ToolTip="Execute script" Command="{Binding RebuildScriptExecCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" />
+                                            <Button Grid.Column="3" Content="📋" ToolTip="Copy to clipboard" Command="{Binding RebuildScriptCopyCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Table information tab -->
+            <TabItem Header="📅 Table information" Name="tabTableInformation">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- Filters -->
+                    <Grid Grid.Row="0" Margin="5,0,5,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="500" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Table -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Table" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="txtTableInformationFilterTable" />
+
+                        <!-- Search button -->
+                        <Button Grid.Row="1" Grid.Column="2" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnTableInformationSearch" Width="75" Cursor="Hand" Click="btnTableInformationSearch_Click"/>
+                    </Grid>
+
+                    <!-- Grid -->
+                    <DataGrid Grid.Row="1"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              Margin="5,10,5,5"
+                              Name="gridTableInformation"
+                              RowHeight="22"
+                              BorderBrush="LightGray"
+                              Background="LightGray"
+                              GridLinesVisibility="None">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="BorderBrush" Value="LightGray" />
+                                <Setter Property="BorderThickness" Value="0,1,1,0" />
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Schema" Binding="{Binding Schema}" Width="60"/>
+                            <DataGridTextColumn Header="Table" Binding="{Binding Table}" Width="Auto"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding SpaceMb, Converter={StaticResource SizeFormaterConverter}}" Width="100">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Margin" Value="5,0,2,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Rows" Binding="{Binding RowCount, Converter={StaticResource CountFormaterConverter}}" Width="100">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Margin" Value="5,0,2,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Creation" Binding="{Binding Creation, Converter={StaticResource DateTimeFormaterConverter}}" Width="180">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Margin" Value="5,0,2,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Last write" Binding="{Binding LastWrite, Converter={StaticResource DateTimeFormaterConverter}}" Width="180">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Margin" Value="5,0,2,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Last read" Binding="{Binding LastRead, Converter={StaticResource DateTimeFormaterConverter}}" Width="180">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Margin" Value="5,0,2,0" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Job monitor tab -->
+            <TabItem Header="🧰 Job monitor" Name="tabJobMonitor">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- Filters -->
+                    <Grid Grid.Row="0" Margin="5,0,5,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="75" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Name -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="Name" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="txtJobMonitorFilterName" />
+
+                        <!-- Enabled -->
+                        <Label Grid.Row="0" Grid.Column="1" Content="Enabled" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <CheckBox Margin="0,0,10,0" Content="Yes" IsChecked="True" Name="chkJobMonitorFilterEnabledYes" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
+                            <CheckBox Margin="0,0,10,0" Content="No" Name="chkJobMonitorFilterEnabledNo" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
+                        </StackPanel>
+                        
+                        <!-- Search button -->
+                        <Button Grid.Row="1" Grid.Column="3" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnJobMonitorSearch" Width="75" Cursor="Hand" Click="btnJobMonitorSearch_Click"/>
+                    </Grid>
+
+                    <!-- Grid -->
+                    <DataGrid Grid.Row="1"
+                              IsReadOnly="True"
+                              AutoGenerateColumns="False"
+                              Margin="5,10,5,5"
+                              Name="gridJobMonitor"
+                              RowHeight="22"
+                              BorderBrush="LightGray"
+                              Background="LightGray"
+                              GridLinesVisibility="None"
+                              MouseDoubleClick="gridJobMonitor_MouseDoubleClick">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="BorderBrush" Value="LightGray" />
+                                <Setter Property="BorderThickness" Value="0,1,1,0" />
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status}" Value="Executing">
+                                        <Setter Property="Foreground" Value="Green" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Enabled}" Value="False">
+                                        <Setter Property="Foreground" Value="#777777" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" Width="44">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="▶️" ToolTip="Start job" Command="{Binding StartJobCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" Width="19">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="IsEnabled" Value="False" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Idle">
+                                                                <Setter Property="IsEnabled" Value="True" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <Button Content="⏹️" ToolTip="Stop job" Command="{Binding StopJobCommand}" CommandParameter="{Binding}" Cursor="Hand" FontSize="10" Margin="1" Width="19">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="IsEnabled" Value="False" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="Executing">
+                                                                <Setter Property="IsEnabled" Value="True" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80"/>
+                            <DataGridTextColumn Header="Enabled" Binding="{Binding EnabledDescriptive}" Width="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Query tab -->
+            <TabItem Header="⌨️ Query" Name="tabQuery">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="4*"/>
+                        <RowDefinition Height="6*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Query -->
+                    <RichTextBox Grid.Row="0" Name="rtbQuery" Margin="5,5,5,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12" PreviewKeyDown="rtbQuery_PreviewKeyDown">
+                        <FlowDocument>
+                            <Paragraph LineHeight="3">
+                            </Paragraph>
+                        </FlowDocument>
+                    </RichTextBox>
+                    <Button Content="▶️ Execute (F5)" Name="btnQueryExecute" Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0" Click="btnQueryExecute_Click"/>
+
+                    <!-- Result -->
+                    <TabControl Grid.Row="1" Name="tabQueryResult" SelectedIndex="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5,10,5,5">
+                        <TabItem Header="🗓️ Results" Name="tabQueryResultResults" Visibility="Collapsed">
+                            <DataGrid Grid.Row="1"
+                                      IsReadOnly="True"
+                                      AutoGenerateColumns="True"
+                                      Name="gridQuery"
+                                      RowHeight="20"
+                                      BorderBrush="LightGray"
+                                      Background="LightGray"
+                                      GridLinesVisibility="None">
+                                <DataGrid.Resources>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="BorderBrush" Value="LightGray" />
+                                        <Setter Property="BorderThickness" Value="0,1,1,0" />
+                                    </Style>
+                                </DataGrid.Resources>
+                            </DataGrid>
+                        </TabItem>
+                        <TabItem Header="📃 Messages" Name="tabQueryResultMessages">
+                            <TextBox Name="txtQueryResultMessages" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+                        </TabItem>
+                    </TabControl>
+                    
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
