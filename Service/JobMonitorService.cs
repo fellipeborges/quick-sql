@@ -35,7 +35,7 @@ namespace quick_sql.Service
 
             string whereClause = string.Empty;
             if (!string.IsNullOrWhiteSpace(filter.Name))
-                whereClause += $" AND jobs.[Name] LIKE '%{filter.Name}%'";
+                whereClause += $" AND jobs.[Name] LIKE '{filter.Name}'";
 
             if (filter.EnabledYes && !filter.EnabledNo)
                 whereClause += $" AND jobs.[Enabled] = 1";

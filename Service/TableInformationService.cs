@@ -32,7 +32,7 @@ namespace quick_sql.Service
             string whereClause = "";
             if (!string.IsNullOrWhiteSpace(filter.Table))
             {
-                whereClause = $"AND T.[Name] LIKE '%{filter.Table}%'";
+                whereClause = $"AND T.[Name] LIKE '{filter.Table}'";
             }
 
             sql = sql.Replace("$WHERE$", whereClause);

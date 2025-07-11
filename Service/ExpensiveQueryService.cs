@@ -6,7 +6,7 @@ namespace quick_sql.Service
     {
         public static List<ExpensiveQuery> Search(ExpensiveQueryFilter filter)
         {
-            using DbService dbService = new(filter.Server, filter.Database);
+            using DbService dbService = new(filter.Server);
             string sql =
                 @"  
                     IF OBJECT_ID('tempdb..#TMP_BLOCKS') IS NOT NULL DROP TABLE #TMP_BLOCKS
@@ -67,22 +67,22 @@ namespace quick_sql.Service
 
             string whereClause = string.Empty;
             if (!string.IsNullOrWhiteSpace(filter.Database))
-                whereClause += $" AND [Database] LIKE '%{filter.Database}%'";
+                whereClause += $" AND [Database] LIKE '{filter.Database}'";
 
             if (!string.IsNullOrWhiteSpace(filter.Host))
-                whereClause += $" AND [Host] LIKE '%{filter.Host}%'";
+                whereClause += $" AND [Host] LIKE '{filter.Host}'";
 
             if (!string.IsNullOrWhiteSpace(filter.Login))
-                whereClause += $" AND [Login] LIKE '%{filter.Login}%'";
+                whereClause += $" AND [Login] LIKE '{filter.Login}'";
 
             if (!string.IsNullOrWhiteSpace(filter.Program))
-                whereClause += $" AND [Program] LIKE '%{filter.Program}%'";
+                whereClause += $" AND [Program] LIKE '{filter.Program}'";
 
             if (filter.BlockingOnly == true)
                 whereClause += $" AND ([Blocking] > 0 OR [BlockedBy] <> '')";
 
             if (!string.IsNullOrWhiteSpace(filter.Query))
-                whereClause += $" AND [Query] LIKE '%{filter.Query}%'";
+                whereClause += $" AND [Query] LIKE '{filter.Query}'";
 
             string orderBy = "[cost] DESC";
             if (filter.BlockingOnly == true)

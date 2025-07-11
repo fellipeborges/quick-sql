@@ -10,9 +10,9 @@ namespace quick_sql.Service
             string sql =
                 @"  
                     IF OBJECT_ID('tempdb..#results') IS NOT NULL DROP TABLE #results
-                    CREATE TABLE #results ([Database] VARCHAR(100), [Type] VARCHAR(100), [Name] VARCHAR(100), [Code] VARCHAR(MAX))
+                    CREATE TABLE #results ([Database] VARCHAR(500), [Type] VARCHAR(100), [Name] VARCHAR(MAX), [Code] VARCHAR(MAX))
 
-                    DECLARE @CURSOR_DB_NAME VARCHAR(100)
+                    DECLARE @CURSOR_DB_NAME VARCHAR(500)
                     DECLARE DB_CURSOR CURSOR 
                     FOR
 	                    SELECT		[name] 
@@ -63,7 +63,7 @@ namespace quick_sql.Service
 
             string dbFilter = string.Empty;
             if (!string.IsNullOrWhiteSpace(filter.Database))
-                dbFilter += $" AND [name] LIKE '%{filter.Database}%'";
+                dbFilter += $" AND [name] LIKE '{filter.Database}'";
 
             string whereClause =
                 filter.SearchInName && filter.SearchInCode ?
