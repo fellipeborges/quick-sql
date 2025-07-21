@@ -353,9 +353,9 @@ namespace quick_sql
             {
                 Server = cmbFilterServer.Text,
                 Database = cmbFilterDatabase.Text,
-                Host = cmbExpQueriesFilterHost.Text,
-                Login = cmbExpQueriesFilterLogin.Text,
-                Program = cmbExpQueriesFilterProgram.Text,
+                Host = txtExpQueriesFilterHost.Text,
+                Login = txtExpQueriesFilterLogin.Text,
+                Program = txtExpQueriesFilterProgram.Text,
                 BlockingOnly = chkExpQueriesFilterBlocking.IsChecked,
                 Query = txtExpQueriesFilterQuery.Text
             });
@@ -441,9 +441,9 @@ namespace quick_sql
                 bool mustRefresh = false;
 
                 mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Database", cmbFilterDatabase, cellValue);
-                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Host", cmbExpQueriesFilterHost, cellValue);
-                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Login", cmbExpQueriesFilterLogin, cellValue);
-                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Program", cmbExpQueriesFilterProgram, cellValue);
+                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Host", txtExpQueriesFilterHost, cellValue);
+                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Login", txtExpQueriesFilterLogin, cellValue);
+                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Program", txtExpQueriesFilterProgram, cellValue);
 
                 if (columnName == "Query")
                 {
@@ -456,11 +456,17 @@ namespace quick_sql
                 }
             }
 
-            static bool FillFilterAndQuery(string clickedColName, string targetColName, ComboBox comboBox, string cellValue)
+            static bool FillFilterAndQuery(string clickedColName, string targetColName, Control control, string cellValue)
             {
-                if (clickedColName == targetColName)
+                if (clickedColName == targetColName && control is ComboBox comboBox)
                 {
                     comboBox.Text = cellValue;
+                    return true;
+                }
+
+                if (clickedColName == targetColName && control is TextBox textBox)
+                {
+                    textBox.Text = cellValue;
                     return true;
                 }
 
@@ -812,15 +818,9 @@ namespace quick_sql
 
             RecentAddSelectedItemIfNotPresent(cmbFilterServer);
             RecentAddSelectedItemIfNotPresent(cmbFilterDatabase);
-            RecentAddSelectedItemIfNotPresent(cmbExpQueriesFilterHost);
-            RecentAddSelectedItemIfNotPresent(cmbExpQueriesFilterLogin);
-            RecentAddSelectedItemIfNotPresent(cmbExpQueriesFilterProgram);
 
             recent.Items.AddRange(RecentGetItemsFromCombobox(cmbFilterServer));
             recent.Items.AddRange(RecentGetItemsFromCombobox(cmbFilterDatabase));
-            recent.Items.AddRange(RecentGetItemsFromCombobox(cmbExpQueriesFilterHost));
-            recent.Items.AddRange(RecentGetItemsFromCombobox(cmbExpQueriesFilterLogin));
-            recent.Items.AddRange(RecentGetItemsFromCombobox(cmbExpQueriesFilterProgram));
 
             RecentService.Save(recent);
         }
@@ -830,9 +830,6 @@ namespace quick_sql
             Recent recent = RecentService.Get();
             RecentLoadDropdown(cmbFilterServer, recent);
             RecentLoadDropdown(cmbFilterDatabase, recent);
-            RecentLoadDropdown(cmbExpQueriesFilterHost, recent);
-            RecentLoadDropdown(cmbExpQueriesFilterLogin, recent);
-            RecentLoadDropdown(cmbExpQueriesFilterProgram, recent);
         }
 
         private List<RecentItem> RecentGetItemsFromCombobox(ComboBox comboBox)
@@ -864,9 +861,6 @@ namespace quick_sql
             {
                 var cb when cb == cmbFilterServer => RecentTypeEnum.Server,
                 var cb when cb == cmbFilterDatabase => RecentTypeEnum.Database,
-                var cb when cb == cmbExpQueriesFilterHost => RecentTypeEnum.Host,
-                var cb when cb == cmbExpQueriesFilterLogin => RecentTypeEnum.Login,
-                var cb when cb == cmbExpQueriesFilterProgram => RecentTypeEnum.Program,
                 _ => RecentTypeEnum.None
             };
 
@@ -885,9 +879,9 @@ namespace quick_sql
             // Key Down
             cmbFilterServer.KeyDown += Handle_KeyDownForSearch;
             cmbFilterDatabase.KeyDown += Handle_KeyDownForSearch;
-            cmbExpQueriesFilterHost.KeyDown += Handle_KeyDownForSearch;
-            cmbExpQueriesFilterLogin.KeyDown += Handle_KeyDownForSearch;
-            cmbExpQueriesFilterProgram.KeyDown += Handle_KeyDownForSearch;
+            txtExpQueriesFilterHost.KeyDown += Handle_KeyDownForSearch;
+            txtExpQueriesFilterLogin.KeyDown += Handle_KeyDownForSearch;
+            txtExpQueriesFilterProgram.KeyDown += Handle_KeyDownForSearch;
             txtExpQueriesFilterQuery.KeyDown += Handle_KeyDownForSearch;
             txtObjectSearchFilterTerm.KeyDown += Handle_KeyDownForSearch;
             txtIndexFragmentationFilterTable.KeyDown += Handle_KeyDownForSearch;
@@ -897,9 +891,9 @@ namespace quick_sql
             // Preview Key Down
             cmbFilterServer.PreviewKeyDown += Handle_PreviewKeyDown;
             cmbFilterDatabase.PreviewKeyDown += Handle_PreviewKeyDown;
-            cmbExpQueriesFilterHost.PreviewKeyDown += Handle_PreviewKeyDown;
-            cmbExpQueriesFilterLogin.PreviewKeyDown += Handle_PreviewKeyDown;
-            cmbExpQueriesFilterProgram.PreviewKeyDown += Handle_PreviewKeyDown;
+            txtExpQueriesFilterHost.PreviewKeyDown += Handle_PreviewKeyDown;
+            txtExpQueriesFilterLogin.PreviewKeyDown += Handle_PreviewKeyDown;
+            txtExpQueriesFilterProgram.PreviewKeyDown += Handle_PreviewKeyDown;
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)

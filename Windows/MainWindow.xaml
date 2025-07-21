@@ -137,15 +137,15 @@
 
                         <!-- Host -->
                         <Label Grid.Row="0" Grid.Column="0" Content="Host" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <ComboBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="cmbExpQueriesFilterHost" MaxDropDownHeight="500" IsEditable="True" Cursor="Hand" />
+                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="txtExpQueriesFilterHost" />
 
                         <!-- Login -->
                         <Label Grid.Row="0" Grid.Column="1" Content="Login" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Name="cmbExpQueriesFilterLogin" MaxDropDownHeight="500" IsEditable="True" Cursor="Hand" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Name="txtExpQueriesFilterLogin" />
 
                         <!-- Program -->
                         <Label Grid.Row="0" Grid.Column="2" Content="Program" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <ComboBox Grid.Row="1" Grid.Column="2" Margin="0,0,10,0" Name="cmbExpQueriesFilterProgram" MaxDropDownHeight="500" IsEditable="True" Cursor="Hand" />
+                        <TextBox Grid.Row="1" Grid.Column="2" Margin="0,0,10,0" Name="txtExpQueriesFilterProgram" />
 
                         <!-- Query -->
                         <Label Grid.Row="0" Grid.Column="3" Content="Query" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
