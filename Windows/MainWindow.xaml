@@ -22,13 +22,13 @@
         <Converters:CountFormaterConverter x:Key="CountFormaterConverter" />
         <Converters:QueryConverter x:Key="QueryConverter" />
     </Window.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
+
         <!-- Loading overlay -->
         <Grid Name="LoadingOverlay" Grid.RowSpan="2" Background="#77000000" Visibility="Collapsed" Panel.ZIndex="1">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -118,6 +118,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <!-- Filters -->
                     <Grid Grid.Row="0" Margin="5,0,5,0">
@@ -243,6 +244,9 @@
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <!-- Footer -->
+                    <Label Grid.Row="2" Name="lblExpQueriesFooter" Content="0 rows" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,-6,0,-2" FontSize="11" Foreground="#FF2D2D2D" />
                 </Grid>
             </TabItem>
 
@@ -252,6 +256,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <!-- Filters -->
                     <Grid Grid.Row="0" Margin="5,0,5,0">
@@ -318,6 +323,9 @@
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <!-- Footer -->
+                    <Label Grid.Row="2" Name="lblObjectSearchFooter" Content="0 rows" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,-6,0,-2" FontSize="11" Foreground="#FF2D2D2D" />
                 </Grid>
             </TabItem>
 
@@ -327,6 +335,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <!-- Filters -->
                     <Grid Grid.Row="0" Margin="5,0,5,0">
@@ -406,6 +415,9 @@
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <!-- Footer -->
+                    <Label Grid.Row="2" Name="lblIndexFragmentationFooter" Content="0 rows" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,-6,0,-2" FontSize="11" Foreground="#FF2D2D2D" />
                 </Grid>
             </TabItem>
 
@@ -415,6 +427,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <!-- Filters -->
                     <Grid Grid.Row="0" Margin="5,0,5,0">
@@ -501,6 +514,9 @@
                             </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <!-- Footer -->
+                    <Label Grid.Row="2" Name="lblTableInformationFooter" Content="0 rows" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,-6,0,-2" FontSize="11" Foreground="#FF2D2D2D" />
                 </Grid>
             </TabItem>
 
@@ -510,6 +526,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <!-- Filters -->
                     <Grid Grid.Row="0" Margin="5,0,5,0">
@@ -533,7 +550,7 @@
                             <CheckBox Margin="0,0,10,0" Content="Yes" IsChecked="True" Name="chkJobMonitorFilterEnabledYes" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
                             <CheckBox Margin="0,0,10,0" Content="No" Name="chkJobMonitorFilterEnabledNo" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
                         </StackPanel>
-                        
+
                         <!-- Search button -->
                         <Button Grid.Row="1" Grid.Column="3" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnJobMonitorSearch" Width="75" Cursor="Hand" Click="btnJobMonitorSearch_Click"/>
                     </Grid>
@@ -605,6 +622,9 @@
                             <DataGridTextColumn Header="Enabled" Binding="{Binding EnabledDescriptive}" Width="70"/>
                         </DataGrid.Columns>
                     </DataGrid>
+
+                    <!-- Footer -->
+                    <Label Grid.Row="2" Name="lblJobMonitorFooter" Content="0 rows" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,-6,0,-2" FontSize="11" Foreground="#FF2D2D2D" />
                 </Grid>
             </TabItem>
 
@@ -614,8 +634,9 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="4*"/>
                         <RowDefinition Height="6*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    
+
                     <!-- Query -->
                     <RichTextBox Grid.Row="0" Name="rtbQuery" Margin="5,5,5,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12" PreviewKeyDown="rtbQuery_PreviewKeyDown">
                         <FlowDocument>
@@ -648,7 +669,9 @@
                             <TextBox Name="txtQueryResultMessages" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
                         </TabItem>
                     </TabControl>
-                    
+
+                    <!-- Footer -->
+                    <Label Grid.Row="2" Name="lblQueryFooter" Content="0 rows" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,-6,0,-2" FontSize="11" Foreground="#FF2D2D2D" />
                 </Grid>
             </TabItem>
         </TabControl>

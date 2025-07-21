@@ -5,6 +5,7 @@ using quick_sql.Model;
 using quick_sql.Service;
 using quick_sql.Windows;
 using System.Data;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -39,10 +40,14 @@ namespace quick_sql
             {
                 return;
             }
+
+            var stopwatch = Stopwatch.StartNew();
+
             try
             {
                 Mouse.OverrideCursor = Cursors.Wait;
                 LoadingOverlay.Visibility = Visibility.Visible;
+                TabFooterClear();
                 RecentSaveValues();
 
                 await Task.Delay(50); // To allow the UI to update before running the search
@@ -58,7 +63,6 @@ namespace quick_sql
                         if (tabMain.SelectedItem == tabQuery) QueryExecute();
                     });
                 });
-
             }
             catch (Exception ex)
             {
@@ -66,9 +70,63 @@ namespace quick_sql
             }
             finally
             {
+                TabFooterFill(stopwatch.Elapsed);
                 Mouse.OverrideCursor = null;
                 LoadingOverlay.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void TabFooterClear()
+        {
+            Label? lbl = TabFooterGetLabel();
+            if (lbl != null)
+            {
+                lbl.Content = "";
+            }
+        }
+
+        private void TabFooterFill(TimeSpan elapsed)
+        {
+            Label? lbl = TabFooterGetLabel();
+            if (lbl != null)
+            {
+                string content = "";
+                content += $"{cmbFilterServer.Text}   |   ";
+                content += $"{string.Format("{0:00}:{1:00}:{2:00}", elapsed.Hours, elapsed.Minutes, elapsed.Seconds)}   |   ";
+                content += $"{TabFooterGetRowCount()} rows";
+
+                lbl.Content = content;
+            }
+        }
+
+        private Label? TabFooterGetLabel()
+        {
+            return tabMain.SelectedItem switch
+            {
+                TabItem item when item == tabExpQueries => lblExpQueriesFooter,
+                TabItem item when item == tabObjectSearch => lblObjectSearchFooter,
+                TabItem item when item == tabIndexFragmentation => lblIndexFragmentationFooter,
+                TabItem item when item == tabTableInformation => lblTableInformationFooter,
+                TabItem item when item == tabJobMonitor => lblJobMonitorFooter,
+                TabItem item when item == tabQuery => lblQueryFooter,
+                _ => null
+            };
+        }
+
+        private int TabFooterGetRowCount()
+        {
+            DataGrid? grid = tabMain.SelectedItem switch
+            {
+                TabItem item when item == tabExpQueries => gridExpQueries,
+                TabItem item when item == tabObjectSearch => gridObjectSearch,
+                TabItem item when item == tabIndexFragmentation => gridIndexFragmentation,
+                TabItem item when item == tabTableInformation => gridTableInformation,
+                TabItem item when item == tabJobMonitor => gridJobMonitor,
+                TabItem item when item == tabQuery => gridQuery,
+                _ => null
+            };
+
+            return grid?.ItemsSource != null ? ((System.Collections.ICollection)grid.ItemsSource).Count : 0;
         }
 
         private bool CheckMandatoryFields()
@@ -394,7 +452,7 @@ namespace quick_sql
 
                 if (mustRefresh)
                 {
-                    ExpensiveQuerySearch();
+                    PerformSearch();
                 }
             }
 
@@ -467,7 +525,7 @@ namespace quick_sql
                 if (columnName == "Database" && !string.IsNullOrWhiteSpace(cellValue))
                 {
                     cmbFilterDatabase.Text = cellValue;
-                    ObjectSearchSearch();
+                    PerformSearch();
                 }
             }
         }
@@ -546,7 +604,7 @@ namespace quick_sql
                 if (columnName == "Name" && !string.IsNullOrWhiteSpace(cellValue))
                 {
                     txtJobMonitorFilterName.Text = cellValue;
-                    JobMonitorSearch();
+                    PerformSearch();
                 }
 
                 if (columnName == "Rebuild script")
@@ -557,7 +615,7 @@ namespace quick_sql
                 if (columnName == "Table")
                 {
                     txtIndexFragmentationFilterTable.Text = cellValue;
-                    IndexFragmentationSearch();
+                    PerformSearch();
                 }
             }
         }
@@ -664,7 +722,7 @@ namespace quick_sql
                 if (columnName == "Name" && !string.IsNullOrWhiteSpace(cellValue))
                 {
                     txtJobMonitorFilterName.Text = cellValue;
-                    JobMonitorSearch();
+                    PerformSearch();
                 }
             }
         }
