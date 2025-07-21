@@ -34,6 +34,7 @@
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="⌛" FontSize="24" Foreground="White" HorizontalAlignment="Center" />
                 <TextBlock Text="Loading..." FontSize="24" Foreground="White" HorizontalAlignment="Center" />
+                <Label Name="lblLoadingCancel" Content="Cancel" Foreground="Blue" Cursor="Hand" HorizontalAlignment="Center" MouseUp="lblLoadingCancel_MouseUp" />
             </StackPanel>
         </Grid>
 

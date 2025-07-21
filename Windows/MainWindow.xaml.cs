@@ -34,6 +34,8 @@ namespace quick_sql
 
         private static void ShowErrorMessage(Exception ex) => MessageBox.Show(ex.Message, "Attention", MessageBoxButton.OK, MessageBoxImage.Error);
 
+        private CancellationTokenSource? CancellationTokenSource;
+
         private async void PerformSearch()
         {
             if (!CheckMandatoryFields())
@@ -41,67 +43,40 @@ namespace quick_sql
                 return;
             }
 
+            CancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = CancellationTokenSource.Token;
             var stopwatch = Stopwatch.StartNew();
+            LoadingOverlay.Visibility = Visibility.Visible;
+            RecentSaveValues();
 
             try
             {
-                Mouse.OverrideCursor = Cursors.Wait;
-                LoadingOverlay.Visibility = Visibility.Visible;
-                TabFooterClear();
-                RecentSaveValues();
-
-                await Task.Delay(50); // To allow the UI to update before running the search
-                await Task.Run(() =>
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        if (tabMain.SelectedItem == tabExpQueries) ExpensiveQuerySearch();
-                        if (tabMain.SelectedItem == tabObjectSearch) ObjectSearchSearch();
-                        if (tabMain.SelectedItem == tabIndexFragmentation) IndexFragmentationSearch();
-                        if (tabMain.SelectedItem == tabTableInformation) TableInformationSearch();
-                        if (tabMain.SelectedItem == tabJobMonitor) JobMonitorSearch();
-                        if (tabMain.SelectedItem == tabQuery) QueryExecute();
-                    });
-                });
+                if (tabMain.SelectedItem == tabExpQueries) await ExpensiveQuerySearch(cancellationToken);
+                if (tabMain.SelectedItem == tabObjectSearch) await ObjectSearchSearch(cancellationToken);
+                if (tabMain.SelectedItem == tabIndexFragmentation) await IndexFragmentationSearch(cancellationToken);
+                if (tabMain.SelectedItem == tabTableInformation) await TableInformationSearch(cancellationToken);
+                if (tabMain.SelectedItem == tabJobMonitor) await JobMonitorSearch(cancellationToken);
+                if (tabMain.SelectedItem == tabQuery) await QueryExecute(cancellationToken);
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 ShowErrorMessage(ex);
             }
             finally
             {
-                TabFooterFill(stopwatch.Elapsed);
-                Mouse.OverrideCursor = null;
                 LoadingOverlay.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void TabFooterClear()
-        {
-            Label? lbl = TabFooterGetLabel();
-            if (lbl != null)
-            {
-                lbl.Content = "";
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    TabFooterFill(stopwatch.Elapsed);
+                }
+                CancellationTokenSource = null;
             }
         }
 
         private void TabFooterFill(TimeSpan elapsed)
         {
-            Label? lbl = TabFooterGetLabel();
-            if (lbl != null)
-            {
-                string content = "";
-                content += $"{cmbFilterServer.Text}   |   ";
-                content += $"{string.Format("{0:00}:{1:00}:{2:00}", elapsed.Hours, elapsed.Minutes, elapsed.Seconds)}   |   ";
-                content += $"{TabFooterGetRowCount()} rows";
-
-                lbl.Content = content;
-            }
-        }
-
-        private Label? TabFooterGetLabel()
-        {
-            return tabMain.SelectedItem switch
+            Label? lbl = tabMain.SelectedItem switch
             {
                 TabItem item when item == tabExpQueries => lblExpQueriesFooter,
                 TabItem item when item == tabObjectSearch => lblObjectSearchFooter,
@@ -111,6 +86,16 @@ namespace quick_sql
                 TabItem item when item == tabQuery => lblQueryFooter,
                 _ => null
             };
+
+            if (lbl != null)
+            {
+                string content = "";
+                content += $"{cmbFilterServer.Text}   |   ";
+                content += $"{string.Format("{0:00}:{1:00}:{2:00}", elapsed.Hours, elapsed.Minutes, elapsed.Seconds)}   |   ";
+                content += $"{TabFooterGetRowCount()} rows";
+
+                lbl.Content = content;
+            }
         }
 
         private int TabFooterGetRowCount()
@@ -347,9 +332,9 @@ namespace quick_sql
         #endregion CodeSnippet
 
         #region ExpensiveQueries
-        private void ExpensiveQuerySearch()
+        private async Task ExpensiveQuerySearch(CancellationToken cancellationToken)
         {
-            List<ExpensiveQuery> list = ExpensiveQueryService.Search(new ExpensiveQueryFilter
+            var filter = new ExpensiveQueryFilter
             {
                 Server = cmbFilterServer.Text,
                 Database = cmbFilterDatabase.Text,
@@ -358,17 +343,21 @@ namespace quick_sql
                 Program = txtExpQueriesFilterProgram.Text,
                 BlockingOnly = chkExpQueriesFilterBlocking.IsChecked,
                 Query = txtExpQueriesFilterQuery.Text
-            });
+            };
 
-            list.ForEach(item =>
+            List<ExpensiveQuery> list = await ExpensiveQueryService.SearchAsync(filter, cancellationToken);
+            if (!cancellationToken.IsCancellationRequested)
             {
-                item.KillSessionCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesKillSession(param));
-                item.GotoBlockerSessionCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesGotoBlockerSession(param));
-                item.QueryViewCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesQueryView(param));
-                item.QueryCopyCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesQueryCopy(param));
-            });
+                list.ForEach(item =>
+                {
+                    item.KillSessionCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesKillSession(param));
+                    item.GotoBlockerSessionCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesGotoBlockerSession(param));
+                    item.QueryViewCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesQueryView(param));
+                    item.QueryCopyCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesQueryCopy(param));
+                });
 
-            gridExpQueries.ItemsSource = list;
+                gridExpQueries.ItemsSource = list;
+            }
         }
 
         private void ExpQueriesKillSession(object parameter)
@@ -477,24 +466,28 @@ namespace quick_sql
         #endregion ExpensiveQueries
 
         #region ObjectSearch
-        private void ObjectSearchSearch()
+        private async Task ObjectSearchSearch(CancellationToken cancellationToken)
         {
-            List<ObjectSearch> list = ObjectSearchService.Search(new ObjectSearchFilter
+            var filter = new ObjectSearchFilter
             {
                 Server = cmbFilterServer.Text,
                 Database = cmbFilterDatabase.Text,
                 Term = txtObjectSearchFilterTerm.Text,
                 SearchInName = chkObjectSearchFilterSearchInName.IsChecked == true,
                 SearchInCode = chkObjectSearchFilterSearchInCode.IsChecked == true
-            });
+            };
 
-            list.ForEach(item =>
+            List<ObjectSearch> list = await ObjectSearchService.SearchAsync(filter, cancellationToken);
+            if (!cancellationToken.IsCancellationRequested)
             {
-                item.CodeViewCommand = new RelayCommand<ObjectSearch>(param => ObjectSearchCodeView(param));
-                item.CodeCopyCommand = new RelayCommand<ObjectSearch>(param => ObjectSearchCodeCopy(param));
-            });
+                list.ForEach(item =>
+                {
+                    item.CodeViewCommand = new RelayCommand<ObjectSearch>(param => ObjectSearchCodeView(param));
+                    item.CodeCopyCommand = new RelayCommand<ObjectSearch>(param => ObjectSearchCodeCopy(param));
+                });
 
-            gridObjectSearch.ItemsSource = list;
+                gridObjectSearch.ItemsSource = list;
+            }
         }
 
         private void ObjectSearchCodeView(object parameter)
@@ -538,23 +531,27 @@ namespace quick_sql
         #endregion ObjectSearch
 
         #region IndexFragmentation
-        private void IndexFragmentationSearch()
+        private async Task IndexFragmentationSearch(CancellationToken cancellationToken)
         {
-            List<IndexFragmentation> list = IndexFragmentationService.Search(new IndexFragmentationFilter
+            var filter = new IndexFragmentationFilter
             {
                 Server = cmbFilterServer.Text,
                 Database = cmbFilterDatabase.Text,
                 Table = txtIndexFragmentationFilterTable.Text
-            });
+            };
 
-            list.ForEach(item =>
+            List<IndexFragmentation> list = await IndexFragmentationService.SearchAsync(filter, cancellationToken);
+            if (!cancellationToken.IsCancellationRequested)
             {
-                item.RebuildScriptViewCommand = new RelayCommand<IndexFragmentation>(param => IndexFragmentationViewCommand(param));
-                item.RebuildScriptExecCommand = new RelayCommand<IndexFragmentation>(param => IndexFragmentationExecCommand(param));
-                item.RebuildScriptCopyCommand = new RelayCommand<IndexFragmentation>(param => IndexFragmentationCopyCommand(param));
-            });
+                list.ForEach(item =>
+                {
+                    item.RebuildScriptViewCommand = new RelayCommand<IndexFragmentation>(param => IndexFragmentationViewCommand(param));
+                    item.RebuildScriptExecCommand = new RelayCommand<IndexFragmentation>(param => IndexFragmentationExecCommand(param));
+                    item.RebuildScriptCopyCommand = new RelayCommand<IndexFragmentation>(param => IndexFragmentationCopyCommand(param));
+                });
 
-            gridIndexFragmentation.ItemsSource = list;
+                gridIndexFragmentation.ItemsSource = list;
+            }
         }
 
         private void IndexFragmentationViewCommand(object parameter)
@@ -628,16 +625,20 @@ namespace quick_sql
         #endregion IndexFragmentation
 
         #region TableInformation
-        private void TableInformationSearch()
+        private async Task TableInformationSearch(CancellationToken cancellationToken)
         {
-            List<TableInformation> list = TableInformationService.Search(new TableInformationFilter
+            var filter = new TableInformationFilter
             {
                 Server = cmbFilterServer.Text,
                 Database = cmbFilterDatabase.Text,
                 Table = txtTableInformationFilterTable.Text
-            });
+            };
 
-            gridTableInformation.ItemsSource = list;
+            List<TableInformation> list = await TableInformationService.SearchAsync(filter, cancellationToken);
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                gridTableInformation.ItemsSource = list;
+            }
         }
 
         private void btnTableInformationSearch_Click(object sender, RoutedEventArgs e)
@@ -647,24 +648,28 @@ namespace quick_sql
         #endregion TableInformation
 
         #region JobMonitor
-        private void JobMonitorSearch()
+        private async Task JobMonitorSearch(CancellationToken cancellationToken)
         {
-            List<JobMonitor> list = JobMonitorService.Search(new JobMonitorFilter
+            var filter = new JobMonitorFilter
             {
                 Server = cmbFilterServer.Text,
                 Database = cmbFilterDatabase.Text,
                 Name = txtJobMonitorFilterName.Text,
                 EnabledYes = chkJobMonitorFilterEnabledYes.IsChecked == true,
                 EnabledNo = chkJobMonitorFilterEnabledNo.IsChecked == true
-            });
+            };
 
-            list.ForEach(item =>
+            List<JobMonitor> list = await JobMonitorService.SearchAsync(filter, cancellationToken);
+            if (!cancellationToken.IsCancellationRequested)
             {
-                item.StartJobCommand = new RelayCommand<JobMonitor>(param => JobMonitorStartJob(param));
-                item.StopJobCommand = new RelayCommand<JobMonitor>(param => JobMonitorStopJob(param));
-            });
+                list.ForEach(item =>
+                {
+                    item.StartJobCommand = new RelayCommand<JobMonitor>(param => JobMonitorStartJob(param));
+                    item.StopJobCommand = new RelayCommand<JobMonitor>(param => JobMonitorStopJob(param));
+                });
 
-            gridJobMonitor.ItemsSource = list;
+                gridJobMonitor.ItemsSource = list;
+            }
         }
 
         private void JobMonitorStartJob(object parameter)
@@ -735,7 +740,7 @@ namespace quick_sql
         #endregion JobMonitor
 
         #region Query
-        private void QueryExecute()
+        private async Task QueryExecute(CancellationToken cancellationToken)
         {
             try
             {
@@ -747,22 +752,30 @@ namespace quick_sql
                     return;
                 }
 
-                Query query = QueryService.Run(new QueryFilter
+                var filter = new QueryFilter
                 {
                     Server = cmbFilterServer.Text,
                     Database = cmbFilterDatabase.Text,
                     Query = code
-                });
+                };
 
-                if (query.HasGridResult)
+                Query query = await QueryService.Run(filter, cancellationToken);
+                if (!cancellationToken.IsCancellationRequested)
                 {
-                    gridQuery.ItemsSource = query.Result?.DefaultView;
-                    gridQuery.Visibility = Visibility.Visible;
-                    tabQueryResultResults.Visibility = Visibility.Visible;
-                    tabQueryResult.SelectedItem = tabQueryResultResults;
-                }
+                    if (query.HasGridResult)
+                    {
+                        gridQuery.ItemsSource = query.Result?.DefaultView;
+                        gridQuery.Visibility = Visibility.Visible;
+                        tabQueryResultResults.Visibility = Visibility.Visible;
+                        tabQueryResult.SelectedItem = tabQueryResultResults;
+                    }
 
-                txtQueryResultMessages.Text = query.Messages;
+                    txtQueryResultMessages.Text = query.Messages;
+                }
+                else
+                {
+                    txtQueryResultMessages.Text = "Query was canceled by user.";
+                }
             }
             catch (Exception ex)
             {
@@ -948,6 +961,10 @@ namespace quick_sql
                     lblFilterDatabase.Content = isDatabaseMandatory ? "Database*" : "Database";
                 }
             }
+        }
+        private void lblLoadingCancel_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            CancellationTokenSource?.Cancel();
         }
         #endregion Events
     }

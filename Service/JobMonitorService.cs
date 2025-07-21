@@ -4,7 +4,7 @@ namespace quick_sql.Service
 {
     internal static class JobMonitorService
     {
-        public static List<JobMonitor> Search(JobMonitorFilter filter)
+        public static async Task<List<JobMonitor>> SearchAsync(JobMonitorFilter filter, CancellationToken cancellationToken)
         {
             using DbService dbService = new(filter.Server, "msdb");
             string sql =
@@ -47,7 +47,8 @@ namespace quick_sql.Service
                 whereClause += $" AND 1=2";
 
             sql = sql.Replace("$WHERE$", whereClause);
-            List<JobMonitor> ret = dbService.Query<JobMonitor>(sql);
+
+            List<JobMonitor> ret = await dbService.QueryAsync<JobMonitor>(sql, cancellationToken);
             return ret;
         }
 

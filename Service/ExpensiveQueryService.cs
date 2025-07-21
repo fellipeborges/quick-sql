@@ -4,7 +4,7 @@ namespace quick_sql.Service
 {
     internal static class ExpensiveQueryService
     {
-        public static List<ExpensiveQuery> Search(ExpensiveQueryFilter filter)
+        public static async Task<List<ExpensiveQuery>> SearchAsync(ExpensiveQueryFilter filter, CancellationToken cancellationToken)
         {
             using DbService dbService = new(filter.Server);
             string sql =
@@ -91,8 +91,7 @@ namespace quick_sql.Service
             sql = sql.Replace("$WHERE$", whereClause);
             sql = sql.Replace("$ORDER_BY$", orderBy);
 
-            List<ExpensiveQuery> ret = dbService.Query<ExpensiveQuery>(sql);
-
+            List<ExpensiveQuery> ret = await dbService.QueryAsync<ExpensiveQuery>(sql, cancellationToken);
             return ret;
         }
 

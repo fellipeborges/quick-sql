@@ -4,7 +4,7 @@ namespace quick_sql.Service
 {
     internal static class IndexFragmentationService
     {
-        public static List<IndexFragmentation> Search(IndexFragmentationFilter filter)
+        public static async Task<List<IndexFragmentation>> SearchAsync(IndexFragmentationFilter filter, CancellationToken cancellationToken)
         {
             using DbService dbService = new(filter.Server, filter.Database);
             string sql =
@@ -33,8 +33,8 @@ namespace quick_sql.Service
             }
 
             sql = sql.Replace("$WHERE$", whereClause);
-            List<IndexFragmentation> ret = dbService.Query<IndexFragmentation>(sql);
 
+            List<IndexFragmentation> ret = await dbService.QueryAsync<IndexFragmentation>(sql, cancellationToken);
             return ret;
         }
 

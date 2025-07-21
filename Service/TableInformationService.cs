@@ -4,7 +4,7 @@ namespace quick_sql.Service
 {
     internal static class TableInformationService
     {
-        public static List<TableInformation> Search(TableInformationFilter filter)
+        public static async Task<List<TableInformation>> SearchAsync(TableInformationFilter filter, CancellationToken cancellationToken)
         {
             using DbService dbService = new(filter.Server, filter.Database);
             string sql =
@@ -36,8 +36,8 @@ namespace quick_sql.Service
             }
 
             sql = sql.Replace("$WHERE$", whereClause);
-            List<TableInformation> ret = dbService.Query<TableInformation>(sql);
 
+            List<TableInformation> ret = await dbService.QueryAsync<TableInformation>(sql, cancellationToken);
             return ret;
         }
     }

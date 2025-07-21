@@ -4,12 +4,11 @@ namespace quick_sql.Service
 {
     internal static class ObjectSearchService
     {
-        public static List<ObjectSearch> Search(ObjectSearchFilter filter)
+        public static async Task<List<ObjectSearch>> SearchAsync(ObjectSearchFilter filter, CancellationToken cancellationToken)
         {
             using DbService dbService = new(filter.Server, "master");
             string sql =
-                @"  
-                    IF OBJECT_ID('tempdb..#results') IS NOT NULL DROP TABLE #results
+                @"  IF OBJECT_ID('tempdb..#results') IS NOT NULL DROP TABLE #results
                     CREATE TABLE #results ([Database] VARCHAR(500), [Type] VARCHAR(100), [Name] VARCHAR(MAX), [Code] VARCHAR(MAX))
 
                     DECLARE @CURSOR_DB_NAME VARCHAR(500)
@@ -76,8 +75,8 @@ namespace quick_sql.Service
 
             sql = sql.Replace("$WHERE$", whereClause);
             sql = sql.Replace("$DB_FILTER$", dbFilter);
-            List<ObjectSearch> ret = dbService.Query<ObjectSearch>(sql);
 
+            List<ObjectSearch> ret = await dbService.QueryAsync<ObjectSearch>(sql, cancellationToken);
             return ret;
         }
     }
