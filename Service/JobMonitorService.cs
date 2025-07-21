@@ -10,7 +10,7 @@ namespace quick_sql.Service
             string sql =
                 @"  
                     ;WITH cte_jobs AS (
-                        SELECT  [Id]                = jobs.[job_id],
+                        SELECT  [Id]                = CAST(jobs.[job_id] AS VARCHAR(50)),
                                 [Name]              = jobs.[name],
                                 [Status]            = CASE WHEN last_activity.StartExecutionDate IS NOT NULL AND last_activity.StopExecutionDate IS NULL THEN 'Executing' ELSE 'Idle' END,
                                 [Enabled]           = jobs.[enabled]
@@ -53,12 +53,14 @@ namespace quick_sql.Service
 
         public static void StartJob(string server, string jobId)
         {
-            throw new NotImplementedException("StartJob method is not implemented yet.");
+            using DbService dbService = new(server, "msdb");
+            dbService.ExecuteNonQuery($"EXEC sp_start_job @job_id = '{jobId}';");
         }
 
         public static void StopJob(string server, string jobId)
         {
-            throw new NotImplementedException("StopJob method is not implemented yet.");
+            using DbService dbService = new(server, "msdb");
+            dbService.ExecuteNonQuery($"EXEC sp_stop_job @job_id = '{jobId}';");
         }
     }
 }
