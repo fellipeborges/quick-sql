@@ -11,7 +11,7 @@ A lightweight, feature-rich SQL Server management tool designed to make your dat
 - Organize snippets with custom names
 - Quick search through your snippet collection
  
-### 💲 Expensive Query Monitoring
+### 💲 Query Monitoring
 - Identify resource-intensive queries
 - Monitor blocking sessions
 - View query details

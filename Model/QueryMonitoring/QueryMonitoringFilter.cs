@@ -2,7 +2,7 @@
 
 namespace quick_sql.Model
 {
-    public class ExpensiveQueryFilter : FilterBase
+    public class QueryMonitoringFilter : FilterBase
     {
         public string? Host { get; set; }
         public string? Login { get; set; }

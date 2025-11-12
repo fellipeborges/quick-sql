@@ -2,9 +2,9 @@
 
 namespace quick_sql.Service
 {
-    internal static class ExpensiveQueryService
+    internal static class QueryMonitoringService
     {
-        public static async Task<List<ExpensiveQuery>> SearchAsync(ExpensiveQueryFilter filter, CancellationToken cancellationToken)
+        public static async Task<List<QueryMonitoring>> SearchAsync(QueryMonitoringFilter filter, CancellationToken cancellationToken)
         {
             using DbService dbService = new(filter.Server);
             string sql =
@@ -104,7 +104,7 @@ namespace quick_sql.Service
             sql = sql.Replace("$WHERE_GENERAL$", whereGeneralClause);
             sql = sql.Replace("$ORDER_BY$", orderBy);
 
-            List<ExpensiveQuery> ret = await dbService.QueryAsync<ExpensiveQuery>(sql, cancellationToken);
+            List<QueryMonitoring> ret = await dbService.QueryAsync<QueryMonitoring>(sql, cancellationToken);
             return ret;
         }
 

@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 namespace quick_sql.Model
 {
-    public class ExpensiveQuery : StringifyProperties
+    public class QueryMonitoring : StringifyProperties
     {
         public int SPID { get; set; }
         public string Status { get; set; } = "";
