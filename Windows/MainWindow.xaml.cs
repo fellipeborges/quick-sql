@@ -51,7 +51,7 @@ namespace quick_sql
 
             try
             {
-                if (tabMain.SelectedItem == tabExpQueries) await ExpensiveQuerySearch(cancellationToken);
+                if (tabMain.SelectedItem == tabQueryMonitoring) await QueryMonitoringSearch(cancellationToken);
                 if (tabMain.SelectedItem == tabObjectSearch) await ObjectSearchSearch(cancellationToken);
                 if (tabMain.SelectedItem == tabIndexFragmentation) await IndexFragmentationSearch(cancellationToken);
                 if (tabMain.SelectedItem == tabTableInformation) await TableInformationSearch(cancellationToken);
@@ -78,7 +78,7 @@ namespace quick_sql
         {
             Label? lbl = tabMain.SelectedItem switch
             {
-                TabItem item when item == tabExpQueries => lblExpQueriesFooter,
+                TabItem item when item == tabQueryMonitoring => lblQueryMonitoringFooter,
                 TabItem item when item == tabObjectSearch => lblObjectSearchFooter,
                 TabItem item when item == tabIndexFragmentation => lblIndexFragmentationFooter,
                 TabItem item when item == tabTableInformation => lblTableInformationFooter,
@@ -102,7 +102,7 @@ namespace quick_sql
         {
             DataGrid? grid = tabMain.SelectedItem switch
             {
-                TabItem item when item == tabExpQueries => gridExpQueries,
+                TabItem item when item == tabQueryMonitoring => gridQueryMonitoring,
                 TabItem item when item == tabObjectSearch => gridObjectSearch,
                 TabItem item when item == tabIndexFragmentation => gridIndexFragmentation,
                 TabItem item when item == tabTableInformation => gridTableInformation,
@@ -331,45 +331,46 @@ namespace quick_sql
 
         #endregion CodeSnippet
 
-        #region ExpensiveQueries
-        private async Task ExpensiveQuerySearch(CancellationToken cancellationToken)
+        #region QueryMonitoring
+        private async Task QueryMonitoringSearch(CancellationToken cancellationToken)
         {
-            var filter = new ExpensiveQueryFilter
+            var filter = new QueryMonitoringFilter
             {
                 Server = cmbFilterServer.Text,
                 Database = cmbFilterDatabase.Text,
-                Host = txtExpQueriesFilterHost.Text,
-                Login = txtExpQueriesFilterLogin.Text,
-                Program = txtExpQueriesFilterProgram.Text,
-                BlockingOnly = chkExpQueriesFilterBlocking.IsChecked,
-                Query = txtExpQueriesFilterQuery.Text
+                Host = txtQueryMonitoringFilterHost.Text,
+                Login = txtQueryMonitoringFilterLogin.Text,
+                Program = txtQueryMonitoringFilterProgram.Text,
+                RunningOnly = chkQueryMonitoringFilterRunning.IsChecked,
+                BlockingOnly = chkQueryMonitoringFilterBlocking.IsChecked,
+                Query = txtQueryMonitoringFilterQuery.Text
             };
 
-            List<ExpensiveQuery> list = await ExpensiveQueryService.SearchAsync(filter, cancellationToken);
+            List<QueryMonitoring> list = await QueryMonitoringService.SearchAsync(filter, cancellationToken);
             if (!cancellationToken.IsCancellationRequested)
             {
                 list.ForEach(item =>
                 {
-                    item.KillSessionCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesKillSession(param));
-                    item.GotoBlockerSessionCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesGotoBlockerSession(param));
-                    item.QueryViewCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesQueryView(param));
-                    item.QueryCopyCommand = new RelayCommand<ExpensiveQuery>(param => ExpQueriesQueryCopy(param));
+                    item.KillSessionCommand = new RelayCommand<QueryMonitoring>(param => ExpQueriesKillSession(param));
+                    item.GotoBlockerSessionCommand = new RelayCommand<QueryMonitoring>(param => ExpQueriesGotoBlockerSession(param));
+                    item.QueryViewCommand = new RelayCommand<QueryMonitoring>(param => ExpQueriesQueryView(param));
+                    item.QueryCopyCommand = new RelayCommand<QueryMonitoring>(param => ExpQueriesQueryCopy(param));
                 });
 
-                gridExpQueries.ItemsSource = list;
+                gridQueryMonitoring.ItemsSource = list;
             }
         }
 
         private void ExpQueriesKillSession(object parameter)
         {
-            if (parameter is ExpensiveQuery item)
+            if (parameter is QueryMonitoring item)
             {
                 if (MessageBox.Show($"Are you sure you want to kill session {item.SPID}?", "Attention", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
                     try
                     {
                         Mouse.OverrideCursor = Cursors.Wait;
-                        ExpensiveQueryService.KillSession(cmbFilterServer.Text, item.SPID);
+                        QueryMonitoringService.KillSession(cmbFilterServer.Text, item.SPID);
                         MessageBox.Show("Command run successfully.", "Attention", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     catch (Exception ex)
@@ -386,24 +387,24 @@ namespace quick_sql
 
         private void ExpQueriesGotoBlockerSession(object parameter)
         {
-            if (parameter is ExpensiveQuery item)
+            if (parameter is QueryMonitoring item)
             {
-                if (gridExpQueries.ItemsSource is not IEnumerable<ExpensiveQuery> gridItems)
+                if (gridQueryMonitoring.ItemsSource is not IEnumerable<QueryMonitoring> gridItems)
                     return;
 
-                ExpensiveQuery? recordToSelect = gridItems.FirstOrDefault(x => x.SPID.ToString() == item.BlockedBy);
+                QueryMonitoring? recordToSelect = gridItems.FirstOrDefault(x => x.SPID.ToString() == item.BlockedBy);
                 if (recordToSelect != null)
                 {
-                    gridExpQueries.SelectedItem = recordToSelect;
-                    gridExpQueries.Focus();
-                    gridExpQueries.ScrollIntoView(recordToSelect);
+                    gridQueryMonitoring.SelectedItem = recordToSelect;
+                    gridQueryMonitoring.Focus();
+                    gridQueryMonitoring.ScrollIntoView(recordToSelect);
                 }
             }
         }
 
         private void ExpQueriesQueryView(object parameter)
         {
-            if (parameter is ExpensiveQuery item)
+            if (parameter is QueryMonitoring item)
             {
                 OpenViewSqlWindow(cmbFilterServer.Text, item.Database, item.Query);
             }
@@ -411,32 +412,32 @@ namespace quick_sql
 
         private static void ExpQueriesQueryCopy(object parameter)
         {
-            if (parameter is ExpensiveQuery item)
+            if (parameter is QueryMonitoring item)
             {
                 Clipboard.SetText(item.Query);
             }
         }
 
-        private void btnExpQueriesSearch_Click(object sender, RoutedEventArgs e)
+        private void btnQueryMonitoringSearch_Click(object sender, RoutedEventArgs e)
         {
             PerformSearch();
         }
 
-        private void gridExpQueries_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void gridQueryMonitoring_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var (columnName, cellValue, anySelected) = GetSelectedCellInfo(gridExpQueries);
+            var (columnName, cellValue, anySelected) = GetSelectedCellInfo(gridQueryMonitoring);
             if (anySelected)
             {
                 bool mustRefresh = false;
 
                 mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Database", cmbFilterDatabase, cellValue);
-                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Host", txtExpQueriesFilterHost, cellValue);
-                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Login", txtExpQueriesFilterLogin, cellValue);
-                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Program", txtExpQueriesFilterProgram, cellValue);
+                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Host", txtQueryMonitoringFilterHost, cellValue);
+                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Login", txtQueryMonitoringFilterLogin, cellValue);
+                mustRefresh = mustRefresh || FillFilterAndQuery(columnName, "Program", txtQueryMonitoringFilterProgram, cellValue);
 
                 if (columnName == "Query")
                 {
-                    ExpQueriesQueryView(gridExpQueries.SelectedItem);
+                    ExpQueriesQueryView(gridQueryMonitoring.SelectedItem);
                 }
 
                 if (mustRefresh)
@@ -463,7 +464,7 @@ namespace quick_sql
             }
         }
 
-        #endregion ExpensiveQueries
+        #endregion QueryMonitoring
 
         #region ObjectSearch
         private async Task ObjectSearchSearch(CancellationToken cancellationToken)
@@ -892,10 +893,10 @@ namespace quick_sql
             // Key Down
             cmbFilterServer.KeyDown += Handle_KeyDownForSearch;
             cmbFilterDatabase.KeyDown += Handle_KeyDownForSearch;
-            txtExpQueriesFilterHost.KeyDown += Handle_KeyDownForSearch;
-            txtExpQueriesFilterLogin.KeyDown += Handle_KeyDownForSearch;
-            txtExpQueriesFilterProgram.KeyDown += Handle_KeyDownForSearch;
-            txtExpQueriesFilterQuery.KeyDown += Handle_KeyDownForSearch;
+            txtQueryMonitoringFilterHost.KeyDown += Handle_KeyDownForSearch;
+            txtQueryMonitoringFilterLogin.KeyDown += Handle_KeyDownForSearch;
+            txtQueryMonitoringFilterProgram.KeyDown += Handle_KeyDownForSearch;
+            txtQueryMonitoringFilterQuery.KeyDown += Handle_KeyDownForSearch;
             txtObjectSearchFilterTerm.KeyDown += Handle_KeyDownForSearch;
             txtIndexFragmentationFilterTable.KeyDown += Handle_KeyDownForSearch;
             txtTableInformationFilterTable.KeyDown += Handle_KeyDownForSearch;
@@ -904,9 +905,9 @@ namespace quick_sql
             // Preview Key Down
             cmbFilterServer.PreviewKeyDown += Handle_PreviewKeyDown;
             cmbFilterDatabase.PreviewKeyDown += Handle_PreviewKeyDown;
-            txtExpQueriesFilterHost.PreviewKeyDown += Handle_PreviewKeyDown;
-            txtExpQueriesFilterLogin.PreviewKeyDown += Handle_PreviewKeyDown;
-            txtExpQueriesFilterProgram.PreviewKeyDown += Handle_PreviewKeyDown;
+            txtQueryMonitoringFilterHost.PreviewKeyDown += Handle_PreviewKeyDown;
+            txtQueryMonitoringFilterLogin.PreviewKeyDown += Handle_PreviewKeyDown;
+            txtQueryMonitoringFilterProgram.PreviewKeyDown += Handle_PreviewKeyDown;
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
@@ -948,7 +949,7 @@ namespace quick_sql
                 if (tabControl.SelectedItem is TabItem selectedTab)
                 {
                     bool isDatabaseFilterEnabled =
-                        (selectedTab == tabExpQueries) ||
+                        (selectedTab == tabQueryMonitoring) ||
                         (selectedTab == tabObjectSearch) ||
                         (selectedTab == tabIndexFragmentation) ||
                         (selectedTab == tabTableInformation) ||

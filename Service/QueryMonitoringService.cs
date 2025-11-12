@@ -2,9 +2,9 @@
 
 namespace quick_sql.Service
 {
-    internal static class ExpensiveQueryService
+    internal static class QueryMonitoringService
     {
-        public static async Task<List<ExpensiveQuery>> SearchAsync(ExpensiveQueryFilter filter, CancellationToken cancellationToken)
+        public static async Task<List<QueryMonitoring>> SearchAsync(QueryMonitoringFilter filter, CancellationToken cancellationToken)
         {
             using DbService dbService = new(filter.Server);
             string sql =
@@ -15,20 +15,28 @@ namespace quick_sql.Service
                     UPDATE #TMP_BLOCKS SET BlkBy = NULL WHERE BlkBy = '  .'
 
                     IF OBJECT_ID('tempdb..#TMP_SESSIONS') IS NOT NULL DROP TABLE #TMP_SESSIONS
-                    SELECT		[SPID]			    = [session_id],
-			                    [Database]			= DB_NAME(database_id),
-			                    [Host]				= [host_name],
-			                    [Login]			    = [login_name],
-			                    [Program]			= [program_name],
-			                    [Cost]				= [reads] + [logical_reads] + [writes] + [cpu_time],
-			                    [ElapsedTime]	    = CONVERT(VARCHAR, DATEADD(ms, [total_elapsed_time], '00:00:00'), 108),
+                    SELECT		[SPID]			    = exs.[session_id],
+			                    [Status]			= LTRIM(RTRIM(UPPER(LEFT(exs.[status], 1)) + LOWER(SUBSTRING(exs.[status], 2, LEN(exs.[status]))))),
+                                [Database]			= DB_NAME(exs.[database_id]),
+			                    [Host]				= exs.[host_name],
+			                    [Login]			    = exs.[login_name],
+			                    [Program]			= exs.[program_name],
+			                    [Cost]				= ISNULL(exs.[reads], 0) + ISNULL(exs.[logical_reads], 0) + ISNULL(exs.[writes], 0) + ISNULL(exs.[cpu_time], 0) +
+								                      ISNULL(exr.[reads], 0) + ISNULL(exr.[logical_reads], 0) + ISNULL(exr.[writes], 0) + ISNULL(exr.[cpu_time], 0),
+			                    [ElapsedTime]	    = CASE
+									                    WHEN ISNULL(exs.[total_elapsed_time], 0) > 0 THEN CONVERT(VARCHAR, DATEADD(SECOND, exs.[total_elapsed_time] / 1000, '00:00:00'), 108)
+									                    WHEN exr.[start_time] IS NOT NULL THEN CONVERT(VARCHAR, DATEADD(SECOND, DATEDIFF(SECOND, exr.[start_time], GETDATE()), '00:00:00'), 108)
+									                    ELSE ''
+								                      END,
 			                    [Blocking]	        = CAST(0 AS INT),
 			                    [BlockedBy]		    = CAST('' AS VARCHAR(10)),
 			                    [Query]			    = CAST('' AS VARCHAR(MAX))
                     INTO		#TMP_SESSIONS
-                    FROM		[sys].[dm_exec_sessions]
-                    WHERE		[is_user_process] = 1
-                    AND			[session_id] <> @@SPID
+                    FROM		[sys].[dm_exec_sessions]    AS exs
+                    LEFT JOIN	[sys].[dm_exec_requests]    AS exr ON exr.[session_id] = exs.[session_id]
+                    WHERE		exs.[is_user_process] = 1
+                    AND			exs.[session_id] <> @@SPID
+                    $WHERE_DM_EXEC$
 
                     DECLARE @INPUTBUFFER_TABLE TABLE ([EventType] VARCHAR(100), [Parameters] VARCHAR(100), [EventInfo] VARCHAR(MAX))
                     DECLARE @sql_cmd VARCHAR(1000)
@@ -61,37 +69,42 @@ namespace quick_sql.Service
                     SELECT		*
                     FROM		#TMP_SESSIONS
                     WHERE		1 = 1
-                    $WHERE$
+                    $WHERE_GENERAL$
                     ORDER BY	$ORDER_BY$
                 ";
 
-            string whereClause = string.Empty;
+            string whereDmExecClause = string.Empty;
             if (!string.IsNullOrWhiteSpace(filter.Database))
-                whereClause += $" AND [Database] LIKE '{filter.Database}'";
+                whereDmExecClause += $" AND DB_NAME(exs.[database_id]) LIKE '{filter.Database}'";
 
             if (!string.IsNullOrWhiteSpace(filter.Host))
-                whereClause += $" AND [Host] LIKE '{filter.Host}'";
+                whereDmExecClause += $" AND exs.[host_name] LIKE '{filter.Host}'";
 
             if (!string.IsNullOrWhiteSpace(filter.Login))
-                whereClause += $" AND [Login] LIKE '{filter.Login}'";
+                whereDmExecClause += $" AND exs.[login_name] LIKE '{filter.Login}'";
 
             if (!string.IsNullOrWhiteSpace(filter.Program))
-                whereClause += $" AND [Program] LIKE '{filter.Program}'";
+                whereDmExecClause += $" AND exs.[program_name] LIKE '{filter.Program}'";
 
+            if (filter.RunningOnly == true)
+                whereDmExecClause += $" AND LTRIM(RTRIM(exs.[status])) = ('running')";
+
+            string whereGeneralClause = string.Empty;
             if (filter.BlockingOnly == true)
-                whereClause += $" AND ([Blocking] > 0 OR [BlockedBy] <> '')";
+                whereGeneralClause += $" AND ([Blocking] > 0 OR [BlockedBy] <> '')";
 
             if (!string.IsNullOrWhiteSpace(filter.Query))
-                whereClause += $" AND [Query] LIKE '{filter.Query}'";
+                whereGeneralClause += $" AND [Query] LIKE '{filter.Query}'";
 
             string orderBy = "[cost] DESC";
             if (filter.BlockingOnly == true)
                 orderBy = "[Blocking] DESC, [cost] DESC";
 
-            sql = sql.Replace("$WHERE$", whereClause);
+            sql = sql.Replace("$WHERE_DM_EXEC$", whereDmExecClause);
+            sql = sql.Replace("$WHERE_GENERAL$", whereGeneralClause);
             sql = sql.Replace("$ORDER_BY$", orderBy);
 
-            List<ExpensiveQuery> ret = await dbService.QueryAsync<ExpensiveQuery>(sql, cancellationToken);
+            List<QueryMonitoring> ret = await dbService.QueryAsync<QueryMonitoring>(sql, cancellationToken);
             return ret;
         }
 

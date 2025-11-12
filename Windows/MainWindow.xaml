@@ -113,8 +113,8 @@
                 </Grid>
             </TabItem>
 
-            <!-- Expensive queries tab -->
-            <TabItem Header="💲 Expensive queries" Name="tabExpQueries">
+            <!-- Query monitoring tab -->
+            <TabItem Header="⚡ Query monitoring" Name="tabQueryMonitoring">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -129,6 +129,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="80" />
                             <ColumnDefinition Width="75" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -138,26 +139,30 @@
 
                         <!-- Host -->
                         <Label Grid.Row="0" Grid.Column="0" Content="Host" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="txtExpQueriesFilterHost" />
+                        <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Name="txtQueryMonitoringFilterHost" />
 
                         <!-- Login -->
                         <Label Grid.Row="0" Grid.Column="1" Content="Login" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Name="txtExpQueriesFilterLogin" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Name="txtQueryMonitoringFilterLogin" />
 
                         <!-- Program -->
                         <Label Grid.Row="0" Grid.Column="2" Content="Program" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <TextBox Grid.Row="1" Grid.Column="2" Margin="0,0,10,0" Name="txtExpQueriesFilterProgram" />
+                        <TextBox Grid.Row="1" Grid.Column="2" Margin="0,0,10,0" Name="txtQueryMonitoringFilterProgram" />
 
                         <!-- Query -->
                         <Label Grid.Row="0" Grid.Column="3" Content="Query" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <TextBox Grid.Row="1" Grid.Column="3" Margin="0,0,10,0" Name="txtExpQueriesFilterQuery" />
+                        <TextBox Grid.Row="1" Grid.Column="3" Margin="0,0,10,0" Name="txtQueryMonitoringFilterQuery" />
+
+                        <!-- Running -->
+                        <Label Grid.Row="0" Grid.Column="4" Content="Only running" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <CheckBox Grid.Row="1" Grid.Column="4" Margin="0,0,10,0" Name="chkQueryMonitoringFilterRunning" ToolTip="Only running queries" IsChecked="True" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
 
                         <!-- Blocking -->
-                        <Label Grid.Row="0" Grid.Column="4" Content="Only blocking" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <CheckBox Grid.Row="1" Grid.Column="4" Margin="0,0,10,0" Name="chkExpQueriesFilterBlocking" ToolTip="Only blocking or blocked queries" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
+                        <Label Grid.Row="0" Grid.Column="5" Content="Only blocking" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <CheckBox Grid.Row="1" Grid.Column="5" Margin="0,0,10,0" Name="chkQueryMonitoringFilterBlocking" ToolTip="Only blocking or blocked queries" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
 
                         <!-- Search button -->
-                        <Button Grid.Row="1" Grid.Column="5" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnExpQueriesSearch" Width="75" Cursor="Hand" Click="btnExpQueriesSearch_Click"/>
+                        <Button Grid.Row="1" Grid.Column="6" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnQueryMonitoringSearch" Width="75" Cursor="Hand" Click="btnQueryMonitoringSearch_Click"/>
                     </Grid>
 
                     <!-- Grid -->
@@ -165,12 +170,12 @@
                               IsReadOnly="True"
                               AutoGenerateColumns="False"
                               Margin="5,10,5,5"
-                              Name="gridExpQueries"
+                              Name="gridQueryMonitoring"
                               RowHeight="22"
                               BorderBrush="LightGray"
                               Background="LightGray"
                               GridLinesVisibility="None"
-                              MouseDoubleClick="gridExpQueries_MouseDoubleClick">
+                              MouseDoubleClick="gridQueryMonitoring_MouseDoubleClick">
                         <DataGrid.Resources>
                             <Style TargetType="DataGridCell">
                                 <Setter Property="BorderBrush" Value="LightGray" />
@@ -186,6 +191,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTextColumn Header="SPID" Binding="{Binding SPID}" Width="40"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="60"/>
                             <DataGridTextColumn Header="Database" Binding="{Binding Database}" Width="230"/>
                             <DataGridTextColumn Header="Host" Binding="{Binding Host}" Width="170"/>
                             <DataGridTextColumn Header="Login" Binding="{Binding Login}" Width="270"/>
@@ -247,7 +253,7 @@
                     </DataGrid>
 
                     <!-- Footer -->
-                    <Label Grid.Row="2" Name="lblExpQueriesFooter" Content="0 rows" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,-6,0,-2" FontSize="11" Foreground="#FF2D2D2D" />
+                    <Label Grid.Row="2" Name="lblQueryMonitoringFooter" Content="0 rows" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,-6,0,-2" FontSize="11" Foreground="#FF2D2D2D" />
                 </Grid>
             </TabItem>
 

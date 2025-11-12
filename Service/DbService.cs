@@ -49,10 +49,7 @@ namespace quick_sql.Service
             }
             catch (Exception ex)
             {
-                if (!ex.Message.Contains("Operation cancelled by user"))
-                {
-                    throw;
-                }
+                HandleDatabaseException(ex);
             }
 
             return results;
@@ -73,10 +70,7 @@ namespace quick_sql.Service
             }
             catch (Exception ex)
             {
-                if (!ex.Message.Contains("Operation cancelled by user"))
-                {
-                    throw;
-                }
+                HandleDatabaseException(ex);
             }
 
             return dataTable;
@@ -96,10 +90,7 @@ namespace quick_sql.Service
             }
             catch (Exception ex)
             {
-                if (!ex.Message.Contains("Operation cancelled by user"))
-                {
-                    throw;
-                }
+                HandleDatabaseException(ex);
             }
 
             return ret;
@@ -109,6 +100,18 @@ namespace quick_sql.Service
         public void Dispose()
         {
             GC.SuppressFinalize(this);
+        }
+
+        private static void HandleDatabaseException(Exception ex)
+        {
+            if (ex.Message.Contains("Failed to generate SSPI context"))
+            {
+                throw new Exception(ex.Message + "\n\nTry using IP Address instead of DNS.", ex);
+            }
+            else if (!ex.Message.Contains("Operation cancelled by user"))
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private static void FillProperty<T>(SqlDataReader reader, PropertyInfo[] properties, T item, int fieldIndex, string columnName) where T : new()
