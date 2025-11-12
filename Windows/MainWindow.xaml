@@ -129,6 +129,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="80" />
                             <ColumnDefinition Width="75" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -152,12 +153,16 @@
                         <Label Grid.Row="0" Grid.Column="3" Content="Query" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
                         <TextBox Grid.Row="1" Grid.Column="3" Margin="0,0,10,0" Name="txtExpQueriesFilterQuery" />
 
+                        <!-- Running -->
+                        <Label Grid.Row="0" Grid.Column="4" Content="Only running" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <CheckBox Grid.Row="1" Grid.Column="4" Margin="0,0,10,0" Name="chkExpQueriesFilterRunning" ToolTip="Only running queries" IsChecked="True" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
+
                         <!-- Blocking -->
-                        <Label Grid.Row="0" Grid.Column="4" Content="Only blocking" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
-                        <CheckBox Grid.Row="1" Grid.Column="4" Margin="0,0,10,0" Name="chkExpQueriesFilterBlocking" ToolTip="Only blocking or blocked queries" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
+                        <Label Grid.Row="0" Grid.Column="5" Content="Only blocking" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-5,0,0,-5" />
+                        <CheckBox Grid.Row="1" Grid.Column="5" Margin="0,0,10,0" Name="chkExpQueriesFilterBlocking" ToolTip="Only blocking or blocked queries" VerticalAlignment="Center" HorizontalAlignment="Left" Cursor="Hand"/>
 
                         <!-- Search button -->
-                        <Button Grid.Row="1" Grid.Column="5" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnExpQueriesSearch" Width="75" Cursor="Hand" Click="btnExpQueriesSearch_Click"/>
+                        <Button Grid.Row="1" Grid.Column="6" Content="Search (F5)" HorizontalAlignment="Right" VerticalAlignment="Bottom" Name="btnExpQueriesSearch" Width="75" Cursor="Hand" Click="btnExpQueriesSearch_Click"/>
                     </Grid>
 
                     <!-- Grid -->
@@ -186,6 +191,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTextColumn Header="SPID" Binding="{Binding SPID}" Width="40"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="60"/>
                             <DataGridTextColumn Header="Database" Binding="{Binding Database}" Width="230"/>
                             <DataGridTextColumn Header="Host" Binding="{Binding Host}" Width="170"/>
                             <DataGridTextColumn Header="Login" Binding="{Binding Login}" Width="270"/>

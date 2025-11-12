@@ -6,6 +6,7 @@ namespace quick_sql.Model
     public class ExpensiveQuery : StringifyProperties
     {
         public int SPID { get; set; }
+        public string Status { get; set; } = "";
         public string Database { get; set; } = "";
         public string Host { get; set; } = "";
         public string Login { get; set; } = "";

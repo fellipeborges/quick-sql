@@ -341,6 +341,7 @@ namespace quick_sql
                 Host = txtExpQueriesFilterHost.Text,
                 Login = txtExpQueriesFilterLogin.Text,
                 Program = txtExpQueriesFilterProgram.Text,
+                RunningOnly = chkExpQueriesFilterRunning.IsChecked,
                 BlockingOnly = chkExpQueriesFilterBlocking.IsChecked,
                 Query = txtExpQueriesFilterQuery.Text
             };
